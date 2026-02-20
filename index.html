@@ -4,81 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Intellectual Partner Dash v2</title>
+    <title>Sunsun Intelligence App</title>
     <style>
-        :root { --glass: rgba(255, 255, 255, 0.85); --primary: #2c3e50; }
+        :root { --glass: rgba(255, 255, 255, 0.9); --primary: #2c3e50; }
+        
+        /* 背景：スンスンの画像を画面全体に固定 */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
             margin: 0; padding: 20px; color: var(--primary);
-            /* 背景設定：スンスンの画像URLをここに入れてください */
             background: url('https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=large') no-repeat center center fixed;
             background-size: cover;
+            min-height: 100vh;
         }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.1); z-index: -1; }
-        h2 { border-left: 5px solid var(--primary); padding-left: 10px; font-size: 1.1rem; background: var(--glass); display: inline-block; padding-right: 20px; border-radius: 0 20px 20px 0; }
-        .section { background: var(--glass); border-radius: 15px; padding: 15px; margin-bottom: 20px; backdrop-filter: blur(5px); }
+
+        /* 読みやすさのためのオーバーレイ */
+        .content-wrapper { position: relative; z-index: 1; }
         
-        /* ニュース項目のスタイル */
-        .news-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
-        .news-img { width: 80px; height: 60px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
-        .news-content { font-size: 0.85rem; line-height: 1.4; }
-        .news-content a { text-decoration: none; color: #007aff; font-weight: bold; }
+        h2 { border-left: 5px solid #ffcc00; padding: 5px 15px; font-size: 1.1rem; background: var(--primary); color: white; border-radius: 0 10px 10px 0; margin-top: 25px; }
+        .section { background: var(--glass); border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
+        .news-item { display: flex; gap: 12px; margin-bottom: 15px; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .news-img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; flex-shrink: 0; background: #eee; border: 1px solid #ccc; }
+        .news-content { font-size: 0.85rem; font-weight: bold; }
+        .news-content a { text-decoration: none; color: #007aff; }
 
         input, button { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .task-card { background: rgba(255,255,255,0.9); padding: 10px; border-radius: 10px; margin-bottom: 10px; font-size: 0.8rem; border-left: 4px solid #3498db; }
-        .task-date { font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px; }
+        button { background: #ffcc00; color: #2c3e50; border: none; font-weight: bold; font-size: 1.1rem; }
+        .task-card { background: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #ffcc00; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-    <div class="overlay"></div>
+    <div class="content-wrapper">
+        <h2>📰 半導体・自治ニュース</h2>
+        <div class="section" id="news-container">読み込み中...</div>
 
-    <h2>📰 ニュース (半導体・自治)</h2>
-    <div class="section" id="news-container">読み込み中...</div>
+        <h2>🔞 FANZA TOP5</h2>
+        <div class="section" id="fanza-container">読み込み中...</div>
 
-    <h2>🔞 FANZA TOP5</h2>
-    <div class="section" id="fanza-container">読み込み中...</div>
-
-    <h2>✅ 思考の記録 (タスク)</h2>
-    <div class="section">
-        <input type="text" id="taskContent" placeholder="内容">
-        <input type="time" id="taskTime">
-        <input type="text" id="taskPerson" placeholder="人物">
-        <button onclick="saveTask()">記録を保存する</button>
-        <div id="taskList"></div>
+        <h2>✅ 思考の記録 (タスク)</h2>
+        <div class="section">
+            <input type="text" id="taskContent" placeholder="内容">
+            <input type="time" id="taskTime">
+            <input type="text" id="taskPerson" placeholder="人物">
+            <button onclick="saveTask()">記録を保存する</button>
+            <div id="taskList"></div>
+        </div>
     </div>
 
     <script>
-        async function fetchRSS(query, limit, containerId) {
-            const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ja&gl=JP&ceid=JP:ja`;
-            return await loadJson(rssUrl, limit, containerId);
-        }
-
-        async function fetchFanza(containerId) {
-            // FANZAビデオ総合RSS (一例)
-            const rssUrl = `https://www.dmm.co.jp/service/-/ranking/=/type=video/sort=ranking/format=rss/`;
-            return await loadJson(rssUrl, 5, containerId);
-        }
-
-        async function loadJson(rssUrl, limit, containerId) {
-            const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+        // RSS取得エンジン
+        async function loadNews(url, containerId, isFanza = false) {
+            const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=00000000000000000000000000000000`; // 公開用無料キー枠
             try {
                 const res = await fetch(api);
                 const data = await res.json();
                 const container = document.getElementById(containerId);
                 let html = '';
-                data.items.slice(0, limit).forEach(item => {
-                    const img = item.enclosure.link || item.thumbnail || 'https://via.placeholder.com/80x60?text=No+Img';
+                
+                data.items.slice(0, 5).forEach(item => {
+                    // 画像取得の優先順位: 1.thumbnail 2.enclosure 3.本文からの抽出 4.ダミー
+                    let img = item.thumbnail || (item.enclosure && item.enclosure.link) || "";
+                    if (!img && item.description) {
+                        const m = item.description.match(/src="([^"]+)"/);
+                        if (m) img = m[1];
+                    }
+                    if (!img) img = isFanza ? "https://via.placeholder.com/70x70?text=FANZA" : "https://via.placeholder.com/70x70?text=NEWS";
+
                     html += `
                         <div class="news-item">
-                            <img src="${img}" class="news-img" onerror="this.src='https://via.placeholder.com/80?text=News'">
+                            <img src="${img}" class="news-img">
                             <div class="news-content">
                                 <a href="${item.link}" target="_blank">${item.title}</a>
                             </div>
                         </div>`;
                 });
-                container.innerHTML = html || 'データが見つかりませんでした。';
-            } catch (e) { document.getElementById(containerId).innerHTML = '読み込みエラー'; }
+                container.innerHTML = html;
+            } catch (e) {
+                document.getElementById(containerId).innerHTML = "データ取得に失敗しました。再読み込みしてください。";
+            }
         }
 
         function saveTask() {
@@ -90,29 +93,28 @@
                 id: Date.now()
             };
             if(!task.content) return;
-            let tasks = JSON.parse(localStorage.getItem('tasks_v2') || '[]');
-            tasks.unshift(task); // 新しいものを上に
-            localStorage.setItem('tasks_v2', JSON.stringify(tasks));
+            let tasks = JSON.parse(localStorage.getItem('tasks_v3') || '[]');
+            tasks.unshift(task);
+            localStorage.setItem('tasks_v3', JSON.stringify(tasks));
             renderTasks();
             document.getElementById('taskContent').value = '';
-            document.getElementById('taskPerson').value = '';
         }
 
         function renderTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tasks_v2') || '[]');
+            const tasks = JSON.parse(localStorage.getItem('tasks_v3') || '[]');
             document.getElementById('taskList').innerHTML = tasks.map(t => `
                 <div class="task-card">
-                    <span class="task-date">${t.date}</span>
-                    <strong>${t.time}</strong> ${t.content} <br>
-                    <small>人物: ${t.person}</small>
+                    <small>${t.date}</small><br>
+                    <strong>${t.time}</strong> ${t.content} (${t.person})
                 </div>
             `).join('');
         }
 
         window.onload = () => {
-            fetchRSS('半導体 ニュース', 5, 'news-container');
-            // 自治ニュースは「自治体 ニュース」として追加
-            fetchFanza('fanza-container');
+            // Googleニュース（半導体+自治）
+            loadNews('https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja', 'news-container');
+            // FANZA総合ランキング
+            loadNews('https://www.dmm.co.jp/service/-/ranking/=/type=video/sort=ranking/format=rss/', 'fanza-container', true);
             renderTasks();
         };
     </script>
