@@ -4,88 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Intellectual Partner Dash</title>
+    <title>Intellectual Partner Dash v2</title>
     <style>
-        :root { --bg: #f4f4f9; --card: #ffffff; --primary: #2c3e50; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
-        h2 { border-left: 4px solid var(--primary); padding-left: 10px; font-size: 1.2rem; }
-        .section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .news-item { margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .news-item a { text-decoration: none; color: #007aff; }
-        input { width: 90%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; width: 100%; font-weight: bold; }
-        .task-list { margin-top: 15px; }
-        .task-card { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; position: relative; }
+        :root { --glass: rgba(255, 255, 255, 0.85); --primary: #2c3e50; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            margin: 0; padding: 20px; color: var(--primary);
+            /* 背景設定：スンスンの画像URLをここに入れてください */
+            background: url('https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=large') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.1); z-index: -1; }
+        h2 { border-left: 5px solid var(--primary); padding-left: 10px; font-size: 1.1rem; background: var(--glass); display: inline-block; padding-right: 20px; border-radius: 0 20px 20px 0; }
+        .section { background: var(--glass); border-radius: 15px; padding: 15px; margin-bottom: 20px; backdrop-filter: blur(5px); }
+        
+        /* ニュース項目のスタイル */
+        .news-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
+        .news-img { width: 80px; height: 60px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
+        .news-content { font-size: 0.85rem; line-height: 1.4; }
+        .news-content a { text-decoration: none; color: #007aff; font-weight: bold; }
+
+        input, button { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .task-card { background: rgba(255,255,255,0.9); padding: 10px; border-radius: 10px; margin-bottom: 10px; font-size: 0.8rem; border-left: 4px solid #3498db; }
+        .task-date { font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
+    <div class="overlay"></div>
 
-    <h2>📰 今日のニュース (半導体/自治)</h2>
+    <h2>📰 ニュース (半導体・自治)</h2>
     <div class="section" id="news-container">読み込み中...</div>
 
-    <h2>✅ タスク入力</h2>
+    <h2>🔞 FANZA TOP5</h2>
+    <div class="section" id="fanza-container">読み込み中...</div>
+
+    <h2>✅ 思考の記録 (タスク)</h2>
     <div class="section">
-        <input type="text" id="taskContent" placeholder="内容 (何をするか？)">
-        <input type="time" id="taskTime" placeholder="時間">
-        <input type="text" id="taskPerson" placeholder="人物 (誰と？)">
-        <button onclick="saveTask()">タスクを記録する</button>
-        <div id="taskList" class="task-list"></div>
+        <input type="text" id="taskContent" placeholder="内容">
+        <input type="time" id="taskTime">
+        <input type="text" id="taskPerson" placeholder="人物">
+        <button onclick="saveTask()">記録を保存する</button>
+        <div id="taskList"></div>
     </div>
 
     <script>
-        // ニュース取得 (Google News RSSをJSON変換サービス経由で取得)
-        async function fetchNews(query, limit, elementId) {
+        async function fetchRSS(query, limit, containerId) {
             const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ja&gl=JP&ceid=JP:ja`;
+            return await loadJson(rssUrl, limit, containerId);
+        }
+
+        async function fetchFanza(containerId) {
+            // FANZAビデオ総合RSS (一例)
+            const rssUrl = `https://www.dmm.co.jp/service/-/ranking/=/type=video/sort=ranking/format=rss/`;
+            return await loadJson(rssUrl, 5, containerId);
+        }
+
+        async function loadJson(rssUrl, limit, containerId) {
             const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-            
             try {
                 const res = await fetch(api);
                 const data = await res.json();
-                return data.items.slice(0, limit);
-            } catch (e) { return []; }
+                const container = document.getElementById(containerId);
+                let html = '';
+                data.items.slice(0, limit).forEach(item => {
+                    const img = item.enclosure.link || item.thumbnail || 'https://via.placeholder.com/80x60?text=No+Img';
+                    html += `
+                        <div class="news-item">
+                            <img src="${img}" class="news-img" onerror="this.src='https://via.placeholder.com/80?text=News'">
+                            <div class="news-content">
+                                <a href="${item.link}" target="_blank">${item.title}</a>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = html || 'データが見つかりませんでした。';
+            } catch (e) { document.getElementById(containerId).innerHTML = '読み込みエラー'; }
         }
 
-        async function loadAllNews() {
-            const container = document.getElementById('news-container');
-            const semi = await fetchNews('半導体', 5);
-            const local = await fetchNews('自治 ニュース', 5);
-            
-            let html = '<strong>【半導体】</strong><br>';
-            semi.forEach(item => html += `<div class="news-item"><a href="${item.link}">${item.title}</a></div>`);
-            html += '<br><strong>【自治】</strong><br>';
-            local.forEach(item => html += `<div class="news-item"><a href="${item.link}">${item.title}</a></div>`);
-            container.innerHTML = html;
-        }
-
-        // タスク管理
         function saveTask() {
             const task = {
                 content: document.getElementById('taskContent').value,
                 time: document.getElementById('taskTime').value,
                 person: document.getElementById('taskPerson').value,
+                date: new Date().toLocaleString('ja-JP'),
                 id: Date.now()
             };
             if(!task.content) return;
-            let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            tasks.push(task);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
+            let tasks = JSON.parse(localStorage.getItem('tasks_v2') || '[]');
+            tasks.unshift(task); // 新しいものを上に
+            localStorage.setItem('tasks_v2', JSON.stringify(tasks));
             renderTasks();
-            document.querySelectorAll('input').forEach(i => i.value = '');
+            document.getElementById('taskContent').value = '';
+            document.getElementById('taskPerson').value = '';
         }
 
         function renderTasks() {
-            const list = document.getElementById('taskList');
-            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            list.innerHTML = tasks.map(t => `
+            const tasks = JSON.parse(localStorage.getItem('tasks_v2') || '[]');
+            document.getElementById('taskList').innerHTML = tasks.map(t => `
                 <div class="task-card">
-                    <b>${t.time}</b>: ${t.content} (${t.person})
+                    <span class="task-date">${t.date}</span>
+                    <strong>${t.time}</strong> ${t.content} <br>
+                    <small>人物: ${t.person}</small>
                 </div>
             `).join('');
         }
 
-        loadAllNews();
-        renderTasks();
+        window.onload = () => {
+            fetchRSS('半導体 ニュース', 5, 'news-container');
+            // 自治ニュースは「自治体 ニュース」として追加
+            fetchFanza('fanza-container');
+            renderTasks();
+        };
     </script>
 </body>
 </html>
