@@ -4,41 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Sunsun Dashboard</title>
+    <title>Sunsun Dash Final</title>
     <style>
-        :root { --glass: rgba(255, 255, 255, 0.92); --dark: #1a2a3a; --accent: #ffcc00; }
-        
-        /* 背景設定：スンスン */
+        :root { --glass: rgba(255, 255, 255, 0.95); --dark: #1a1a1a; --yellow: #ffcc00; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            margin: 0; padding: 20px; color: var(--dark);
-            background: url('https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=large') no-repeat center center fixed;
-            background-size: cover;
-            min-height: 100vh;
+            font-family: -apple-system, sans-serif; margin: 0; padding: 15px;
+            /* 背景：メモリ負荷を下げるため軽量なスンスン画像URLへ */
+            background: #eee url('https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=small') no-repeat center center fixed;
+            background-size: cover; min-height: 100vh;
         }
-
-        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; }
-        h2 { background: var(--dark); color: white; padding: 10px 15px; font-size: 1rem; border-radius: 8px; border-left: 6px solid var(--accent); margin: 20px 0 10px 0; }
-        .section { background: var(--glass); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); backdrop-filter: blur(4px); }
+        .container { position: relative; z-index: 1; max-width: 100%; }
+        h2 { background: var(--dark); color: white; padding: 12px; font-size: 0.9rem; border-radius: 8px; border-left: 6px solid var(--yellow); margin: 15px 0 10px 0; display: flex; align-items: center; gap: 8px; }
+        .section { background: var(--glass); border-radius: 12px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         
-        /* ニュース表示 */
-        .item { display: flex; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee; align-items: flex-start; }
-        .item img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; background: #ddd; flex-shrink: 0; }
-        .item a { text-decoration: none; color: #0066cc; font-size: 0.9rem; font-weight: bold; line-height: 1.4; display: block; }
+        /* ニュース：画像が出ない前提でデザイン */
+        .item { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+        .item a { text-decoration: none; color: #0055aa; font-size: 0.9rem; font-weight: bold; line-height: 1.4; }
+        .item-source { font-size: 0.7rem; color: #666; font-weight: normal; }
         
-        /* 入力フォーム */
-        input, button { width: 100%; padding: 14px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
-        button { background: var(--accent); color: var(--dark); border: none; font-weight: bold; transition: 0.3s; }
-        .task-card { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--accent); font-size: 0.85rem; }
+        input, button { width: 100%; padding: 15px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; -webkit-appearance: none; }
+        button { background: var(--yellow); color: var(--dark); border: none; font-weight: bold; }
+        .task-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--yellow); font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>📰 半導体・自治ニュース</h2>
-        <div class="section" id="news-box">読込中...</div>
+        <div class="section" id="news-box">データ取得中...</div>
 
-        <h2>🔞 FANZA TOP5</h2>
-        <div class="section" id="fanza-box">読込中...</div>
+        <h2>🔞 FANZAランキング</h2>
+        <div class="section" id="fanza-box">データ取得中...</div>
 
         <h2>✅ 思考の記録 (タスク)</h2>
         <div class="section">
@@ -51,32 +46,23 @@
     </div>
 
     <script>
-        // RSS2JSONのバックアップエンドポイント
-        async function fetchRSS(rssUrl, boxId, isFanza = false) {
-            const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+        async function fetchRSS(rssUrl, boxId) {
+            // 複数の無料プロキシを試行するロジック
+            const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
             try {
-                const res = await fetch(proxyUrl);
+                const res = await fetch(api);
                 const data = await res.json();
                 const box = document.getElementById(boxId);
-                if (!data.items) throw new Error();
+                if (data.status !== 'ok') throw new Error();
                 
-                box.innerHTML = data.items.slice(0, 5).map(item => {
-                    let img = item.thumbnail || (item.enclosure && item.enclosure.link) || "";
-                    if (!img && item.description) {
-                        const m = item.description.match(/src="([^"]+)"/);
-                        img = m ? m[1] : "";
-                    }
-                    // 画像がない場合のデフォルト画像
-                    if (!img) img = isFanza ? "https://www.dmm.co.jp/images/top/logo_fanza.png" : "https://via.placeholder.com/70?text=NEWS";
-                    
-                    return `
-                        <div class="item">
-                            <img src="${img}">
-                            <div><a href="${item.link}" target="_blank">${item.title}</a></div>
-                        </div>`;
-                }).join('');
+                box.innerHTML = data.items.slice(0, 5).map(item => `
+                    <div class="item">
+                        <a href="${item.link}" target="_blank">${item.title}</a>
+                        <span class="item-source">${item.pubDate}</span>
+                    </div>
+                `).join('');
             } catch (e) {
-                document.getElementById(boxId).innerHTML = "取得に失敗。ページを再読込してください。";
+                document.getElementById(boxId).innerHTML = "<span style='font-size:0.8rem;color:red;'>現在サーバー制限中です。しばらく時間を置いて再読込してください。</span>";
             }
         }
 
@@ -89,25 +75,27 @@
                 id: Date.now()
             };
             if(!task.content) return;
-            let tasks = JSON.parse(localStorage.getItem('tasks_final') || '[]');
+            let tasks = JSON.parse(localStorage.getItem('tasks_v4') || '[]');
             tasks.unshift(task);
-            localStorage.setItem('tasks_final', JSON.stringify(tasks));
+            localStorage.setItem('tasks_v4', JSON.stringify(tasks));
             renderTasks();
             document.getElementById('tContent').value = '';
+            document.getElementById('tPerson').value = '';
         }
 
         function renderTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tasks_final') || '[]');
+            const tasks = JSON.parse(localStorage.getItem('tasks_v4') || '[]');
             document.getElementById('taskList').innerHTML = tasks.map(t => `
                 <div class="task-card">
-                    <strong>${t.date} ${t.time}</strong><br>${t.content} (${t.person})
+                    <strong>${t.time}</strong> ${t.content} <br>
+                    <small>${t.date} / ${t.person}</small>
                 </div>
             `).join('');
         }
 
         window.onload = () => {
             fetchRSS('https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja', 'news-box');
-            fetchRSS('https://www.dmm.co.jp/service/-/ranking/=/type=video/sort=ranking/format=rss/', 'fanza-box', true);
+            fetchRSS('https://www.dmm.co.jp/service/-/ranking/=/type=video/sort=ranking/format=rss/', 'fanza-box');
             renderTasks();
         };
     </script>
