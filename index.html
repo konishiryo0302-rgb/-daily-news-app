@@ -4,145 +4,166 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Concrete Pokemon Dashboard</title>
+    <title>TEL Intelligence & Sunsun</title>
     <style>
-        :root { --accent: #00d4ff; --bg-concrete: #d1d1d1; --text-dark: #2c3e50; }
+        :root { 
+            --tel-blue: #00a1e9; 
+            --tel-green: #8cc63f; 
+            --tel-white: #ffffff;
+            --tel-gray: #f2f4f6;
+        }
         
         body { 
-            font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 15px;
-            background-color: var(--bg-concrete);
-            color: var(--text-dark);
-            min-height: 100vh;
-            overflow-x: hidden;
+            font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; 
+            margin: 0; padding: 15px; background-color: var(--tel-gray);
+            color: #333; min-height: 100vh;
         }
 
-        /* ランダムポケモン背景のオーバーレイ */
+        /* ポケモン背景：第5世代(1-649) 主張強め */
         #pokemon-bg {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80%; height: 80%; object-fit: contain; opacity: 0.15; z-index: -1;
-            pointer-events: none; filter: grayscale(50%);
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; height: 85%; object-fit: contain; opacity: 0.4; z-index: -1;
+            pointer-events: none;
         }
 
-        .container { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
         
-        h2 { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 25px 0 10px 0; border-bottom: 1px solid #aaa; padding-bottom: 5px; color: #555; }
+        h2 { 
+            font-size: 0.85rem; letter-spacing: 1px; color: var(--tel-blue);
+            border-left: 6px solid var(--tel-green); padding: 4px 12px;
+            margin: 25px 0 10px 0; background: rgba(255,255,255,0.7);
+        }
         
         .section { 
-            background: rgba(255, 255, 255, 0.6); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255,255,255,0.4);
-            border-radius: 4px; padding: 15px; margin-bottom: 20px;
-            box-shadow: 10px 10px 20px #bebebe, -10px -10px 20px #ffffff;
+            background: rgba(255, 255, 255, 0.95); border-radius: 15px; 
+            padding: 15px; margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 161, 233, 0.08);
+            border: 1px solid rgba(0, 161, 233, 0.1);
         }
 
-        .item { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 0.5px solid rgba(0,0,0,0.1); }
-        .item a { text-decoration: none; color: var(--text-dark); font-size: 0.85rem; font-weight: 500; display: block; line-height: 1.5; }
-        .item a:hover { color: var(--accent); }
-        .url-text { font-size: 0.7rem; color: #777; word-break: break-all; }
+        /* ニュース・リスト */
+        .item { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .item a { text-decoration: none; color: #222; font-size: 0.9rem; font-weight: 600; line-height: 1.4; display: block; }
 
-        input, button { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 4px; font-size: 14px; outline: none; background: rgba(255,255,255,0.8); }
-        button { background: var(--text-dark); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:active { background: var(--accent); }
-
-        .task-card { background: rgba(255,255,255,0.9); padding: 10px; border-radius: 2px; margin-bottom: 8px; font-size: 0.75rem; border-left: 3px solid var(--text-dark); }
+        /* 入力UI */
+        input { 
+            width: 100%; padding: 12px; border: 2px solid #eef0f2; border-radius: 10px; 
+            font-size: 16px; box-sizing: border-box; margin-bottom: 10px; outline: none;
+        }
+        input:focus { border-color: var(--tel-blue); }
         
-        /* トレンドタグ */
-        .trend-tag { display: inline-block; background: #eee; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; margin: 3px; border: 1px solid #ccc; text-decoration: none; color: #333; }
+        button { 
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--tel-blue), var(--tel-green));
+            color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem;
+        }
+
+        .task-card { 
+            background: #fff; padding: 10px; border-radius: 8px; margin-top: 10px;
+            border-right: 4px solid var(--tel-green); font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* スンスンチャットエリア */
+        .chat-box { height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; }
+        .chat-msg { margin-bottom: 8px; font-size: 0.85rem; padding: 6px 10px; border-radius: 12px; max-width: 80%; }
+        .msg-user { background: var(--tel-blue); color: white; margin-left: auto; text-align: right; }
+        .msg-sunsun { background: #e8e8e8; color: #333; display: flex; align-items: center; gap: 5px; }
+        .sunsun-icon { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
     </style>
 </head>
 <body>
     <img id="pokemon-bg" src="" alt="">
 
     <div class="container">
-        <h2>01. Semiconductor & News</h2>
-        <div class="section" id="news-box">Loading...</div>
+        <h2>STRATEGIC NEWS</h2>
+        <div class="section" id="news-box">Connecting TEL Network...</div>
 
-        <h2>02. X Video URLs</h2>
-        <div class="section" id="x-video-box">Loading...</div>
-
-        <h2>03. X Trends</h2>
-        <div class="section" id="x-trend-box">
-            <a href="https://x.com/search?q=半導体" class="trend-tag">#半導体</a>
-            <a href="https://x.com/search?q=トレンド" class="trend-tag">#トレンド</a>
+        <h2>SUNSUN CHAT</h2>
+        <div class="section">
+            <div class="chat-box" id="chat-display">
+                <div class="chat-msg msg-sunsun">スンスンだよ。なにかはなして。</div>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="chat-input" placeholder="スンスンにメッセージ..." style="margin-bottom:0;">
+                <button onclick="sunsunChat()" style="width:70px; padding:0;">送信</button>
+            </div>
         </div>
 
-        <h2>04. Ichiban Kuji Info</h2>
-        <div class="section" id="kuji-box">Loading...</div>
-
-        <h2>05. Logic Memo</h2>
+        <h2>LOGIC ARCHIVE</h2>
         <div class="section">
-            <input type="text" id="tContent" placeholder="CONTENT">
+            <input type="text" id="tContent" placeholder="THOUGHT">
             <input type="text" id="tPerson" placeholder="PERSON">
-            <button onclick="saveTask()">EXECUTE SAVE</button>
+            <button onclick="saveTask()">SAVE LOGIC</button>
             <div id="taskList"></div>
         </div>
     </div>
 
     <script>
-        // ポケモン背景のランダム設定
+        const SUNSUN_IMG = "https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=small";
+
         function setRandomPokemon() {
-            const pokeId = Math.floor(Math.random() * 1025) + 1;
+            const pokeId = Math.floor(Math.random() * 649) + 1; // 第5世代まで
             document.getElementById('pokemon-bg').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
         }
 
-        async function fetchRSS(rssUrl, boxId, mode) {
-            const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+        async function fetchNews() {
+            const rssUrl = 'https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja';
             try {
-                const res = await fetch(api);
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
                 const data = await res.json();
-                const box = document.getElementById(boxId);
-                
-                box.innerHTML = data.items.slice(0, 5).map(item => {
-                    if (mode === 'url-only') {
-                        return `<div class="item">
-                            <span class="url-text">Video Link:</span>
-                            <a href="${item.link}" target="_blank">${item.title}</a>
-                        </div>`;
-                    }
-                    return `<div class="item"><a href="${item.link}" target="_blank">${item.title}</a></div>`;
-                }).join('');
-            } catch (e) {
-                document.getElementById(boxId).innerHTML = "Offline or Restricted.";
-            }
+                document.getElementById('news-box').innerHTML = data.items.slice(0, 5).map(item => `
+                    <div class="item"><a href="${item.link}" target="_blank">${item.title}</a></div>
+                `).join('');
+            } catch (e) { document.getElementById('news-box').innerHTML = "Reload required."; }
         }
 
-        // Xトレンドをダミーではなく最新検索リンクとして生成
-        function setupTrends() {
-            const trends = ["半導体", "TSMC", "一番くじ", "株価", "AI"];
-            const box = document.getElementById('x-trend-box');
-            box.innerHTML = trends.map(t => `<a href="https://x.com/search?q=${encodeURIComponent(t)}" target="_blank" class="trend-tag">#${t}</a>`).join('');
+        // スンスンチャットのロジック
+        function sunsunChat() {
+            const input = document.getElementById('chat-input');
+            const display = document.getElementById('chat-display');
+            if(!input.value) return;
+
+            // ユーザーメッセージ
+            display.innerHTML += `<div class="chat-msg msg-user">${input.value}</div>`;
+            
+            // スンスンの適当な返信リスト
+            const replies = ["スンスン！", "パペットだよ", "おなかすいたね", "そうなんだぁ", "よくわかんないけどすごいね", "おひるねする？", "ふーん...", "スンスンスンスン！"];
+            const randomReply = replies[Math.floor(Math.random() * replies.length)];
+
+            setTimeout(() => {
+                display.innerHTML += `
+                    <div class="chat-msg msg-sunsun">
+                        <img src="${SUNSUN_IMG}" class="sunsun-icon">
+                        ${randomReply}
+                    </div>`;
+                display.scrollTop = display.scrollHeight;
+            }, 600);
+
+            input.value = '';
+            display.scrollTop = display.scrollHeight;
         }
 
         function saveTask() {
-            const task = {
-                content: document.getElementById('tContent').value,
-                person: document.getElementById('tPerson').value,
-                time: new Date().toLocaleTimeString(),
-                id: Date.now()
-            };
-            if(!task.content) return;
-            let tasks = JSON.parse(localStorage.getItem('tasks_v6') || '[]');
+            const content = document.getElementById('tContent').value;
+            const person = document.getElementById('tPerson').value;
+            if(!content) return;
+            const task = { content, person, time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) };
+            let tasks = JSON.parse(localStorage.getItem('tel_tasks_v7') || '[]');
             tasks.unshift(task);
-            localStorage.setItem('tasks_v6', JSON.stringify(tasks));
+            localStorage.setItem('tel_tasks_v7', JSON.stringify(tasks));
             renderTasks();
             document.getElementById('tContent').value = '';
         }
 
         function renderTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tasks_v6') || '[]');
+            const tasks = JSON.parse(localStorage.getItem('tel_tasks_v7') || '[]');
             document.getElementById('taskList').innerHTML = tasks.slice(0, 5).map(t => `
-                <div class="task-card">
-                    <strong>${t.time}</strong> : ${t.content} (${t.person})
-                </div>
+                <div class="task-card"><strong>${t.time}</strong> ${t.content} (${t.person})</div>
             `).join('');
         }
 
         window.onload = () => {
             setRandomPokemon();
-            setupTrends();
-            fetchRSS('https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja', 'news-box');
-            fetchRSS('https://twitrss.me/twitter_search_to_rss/?term=video', 'x-video-box', 'url-only');
-            fetchRSS('https://snssdk.com/news/rss/category/all', 'kuji-box'); // 一番くじ等を含む代替ニュースフィード
+            fetchNews();
             renderTasks();
         };
     </script>
