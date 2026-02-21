@@ -4,116 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Sunsun Intelligence X</title>
+    <title>Concrete Pokemon Dashboard</title>
     <style>
-        :root { --glass: rgba(255, 255, 255, 0.94); --dark: #0f1419; --accent: #1d9bf0; }
+        :root { --accent: #00d4ff; --bg-concrete: #d1d1d1; --text-dark: #2c3e50; }
         
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            margin: 0; padding: 15px; color: var(--dark);
-            /* スンスン背景：iPhoneのメモリに優しいサイズ */
-            background: #f0f0f0 url('https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=small') no-repeat center center fixed;
-            background-size: cover; min-height: 100vh;
+            font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 15px;
+            background-color: var(--bg-concrete);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ランダムポケモン背景のオーバーレイ */
+        #pokemon-bg {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80%; height: 80%; object-fit: contain; opacity: 0.15; z-index: -1;
+            pointer-events: none; filter: grayscale(50%);
         }
 
         .container { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
         
-        h2 { background: var(--dark); color: white; padding: 12px; font-size: 0.95rem; border-radius: 12px; margin: 20px 0 10px 0; border-left: 6px solid var(--accent); display: flex; align-items: center; gap: 8px; }
+        h2 { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 25px 0 10px 0; border-bottom: 1px solid #aaa; padding-bottom: 5px; color: #555; }
         
-        .section { background: var(--glass); border-radius: 18px; padding: 15px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); backdrop-filter: blur(8px); }
+        .section { 
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 4px; padding: 15px; margin-bottom: 20px;
+            box-shadow: 10px 10px 20px #bebebe, -10px -10px 20px #ffffff;
+        }
 
-        .item { display: flex; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); align-items: flex-start; }
-        .item img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; background: #eee; flex-shrink: 0; }
-        /* 画像が読み込めない（？）場合は非表示にする */
-        .item img[src=""], .item img:not([src]) { display: none; }
-        
-        .item a { text-decoration: none; color: #1a1a1a; font-size: 0.88rem; font-weight: bold; line-height: 1.4; display: block; }
-        .item-meta { font-size: 0.7rem; color: var(--accent); margin-top: 4px; display: block; }
+        .item { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 0.5px solid rgba(0,0,0,0.1); }
+        .item a { text-decoration: none; color: var(--text-dark); font-size: 0.85rem; font-weight: 500; display: block; line-height: 1.5; }
+        .item a:hover { color: var(--accent); }
+        .url-text { font-size: 0.7rem; color: #777; word-break: break-all; }
 
-        input, button { width: 100%; padding: 14px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 14px; font-size: 16px; box-sizing: border-box; }
-        button { background: var(--accent); color: white; border: none; font-weight: bold; font-size: 1rem; }
+        input, button { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 4px; font-size: 14px; outline: none; background: rgba(255,255,255,0.8); }
+        button { background: var(--text-dark); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:active { background: var(--accent); }
+
+        .task-card { background: rgba(255,255,255,0.9); padding: 10px; border-radius: 2px; margin-bottom: 8px; font-size: 0.75rem; border-left: 3px solid var(--text-dark); }
         
-        .task-card { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 5px solid var(--accent); font-size: 0.85rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        /* トレンドタグ */
+        .trend-tag { display: inline-block; background: #eee; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; margin: 3px; border: 1px solid #ccc; text-decoration: none; color: #333; }
     </style>
 </head>
 <body>
+    <img id="pokemon-bg" src="" alt="">
+
     <div class="container">
-        <h2>📰 半導体・自治ニュース</h2>
-        <div class="section" id="news-box">読込中...</div>
+        <h2>01. Semiconductor & News</h2>
+        <div class="section" id="news-box">Loading...</div>
 
-        <h2>🐦 X(Twitter) 保存ランキング</h2>
-        <div class="section" id="x-box">読込中...</div>
+        <h2>02. X Video URLs</h2>
+        <div class="section" id="x-video-box">Loading...</div>
 
-        <h2>✅ 思考の記録 (タスク)</h2>
+        <h2>03. X Trends</h2>
+        <div class="section" id="x-trend-box">
+            <a href="https://x.com/search?q=半導体" class="trend-tag">#半導体</a>
+            <a href="https://x.com/search?q=トレンド" class="trend-tag">#トレンド</a>
+        </div>
+
+        <h2>04. Ichiban Kuji Info</h2>
+        <div class="section" id="kuji-box">Loading...</div>
+
+        <h2>05. Logic Memo</h2>
         <div class="section">
-            <input type="text" id="tContent" placeholder="内容">
-            <input type="time" id="tTime">
-            <input type="text" id="tPerson" placeholder="人物">
-            <button onclick="saveTask()">思考を保存する</button>
+            <input type="text" id="tContent" placeholder="CONTENT">
+            <input type="text" id="tPerson" placeholder="PERSON">
+            <button onclick="saveTask()">EXECUTE SAVE</button>
             <div id="taskList"></div>
         </div>
     </div>
 
     <script>
-        async function fetchRSS(rssUrl, boxId, isX = false) {
-            // 信頼性の高いプロキシを使用
+        // ポケモン背景のランダム設定
+        function setRandomPokemon() {
+            const pokeId = Math.floor(Math.random() * 1025) + 1;
+            document.getElementById('pokemon-bg').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+        }
+
+        async function fetchRSS(rssUrl, boxId, mode) {
             const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
             try {
                 const res = await fetch(api);
                 const data = await res.json();
                 const box = document.getElementById(boxId);
                 
-                if (data.status !== 'ok') throw new Error();
-
                 box.innerHTML = data.items.slice(0, 5).map(item => {
-                    let img = item.thumbnail || (item.enclosure && item.enclosure.link) || "";
-                    // Xの場合は画像取得が難しいため、アイコン等に差し替え
-                    if (isX) img = "https://abs.twimg.com/favicons/twitter.ico";
-                    
-                    return `
-                        <div class="item">
-                            <img src="${img}" onerror="this.style.display='none'">
-                            <div>
-                                <a href="${item.link}" target="_blank">${item.title}</a>
-                                <span class="item-meta">${isX ? 'X Video Trend' : 'News'}</span>
-                            </div>
+                    if (mode === 'url-only') {
+                        return `<div class="item">
+                            <span class="url-text">Video Link:</span>
+                            <a href="${item.link}" target="_blank">${item.title}</a>
                         </div>`;
+                    }
+                    return `<div class="item"><a href="${item.link}" target="_blank">${item.title}</a></div>`;
                 }).join('');
             } catch (e) {
-                document.getElementById(boxId).innerHTML = "<p style='font-size:0.8rem;'>更新中または制限中です。数分後に再読込してください。</p>";
+                document.getElementById(boxId).innerHTML = "Offline or Restricted.";
             }
+        }
+
+        // Xトレンドをダミーではなく最新検索リンクとして生成
+        function setupTrends() {
+            const trends = ["半導体", "TSMC", "一番くじ", "株価", "AI"];
+            const box = document.getElementById('x-trend-box');
+            box.innerHTML = trends.map(t => `<a href="https://x.com/search?q=${encodeURIComponent(t)}" target="_blank" class="trend-tag">#${t}</a>`).join('');
         }
 
         function saveTask() {
             const task = {
                 content: document.getElementById('tContent').value,
-                time: document.getElementById('tTime').value,
                 person: document.getElementById('tPerson').value,
-                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
                 id: Date.now()
             };
             if(!task.content) return;
-            let tasks = JSON.parse(localStorage.getItem('tasks_v5') || '[]');
+            let tasks = JSON.parse(localStorage.getItem('tasks_v6') || '[]');
             tasks.unshift(task);
-            localStorage.setItem('tasks_v5', JSON.stringify(tasks));
+            localStorage.setItem('tasks_v6', JSON.stringify(tasks));
             renderTasks();
             document.getElementById('tContent').value = '';
         }
 
         function renderTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tasks_v5') || '[]');
-            document.getElementById('taskList').innerHTML = tasks.map(t => `
+            const tasks = JSON.parse(localStorage.getItem('tasks_v6') || '[]');
+            document.getElementById('taskList').innerHTML = tasks.slice(0, 5).map(t => `
                 <div class="task-card">
-                    <strong>${t.time}</strong> ${t.content} (${t.person})
+                    <strong>${t.time}</strong> : ${t.content} (${t.person})
                 </div>
             `).join('');
         }
 
         window.onload = () => {
-            // ニュース
+            setRandomPokemon();
+            setupTrends();
             fetchRSS('https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja', 'news-box');
-            // X(Twitter) 動画保存ランキング（代替フィード）
-            fetchRSS('https://twitrss.me/twitter_search_to_rss/?term=video+ranking', 'x-box', true);
+            fetchRSS('https://twitrss.me/twitter_search_to_rss/?term=video', 'x-video-box', 'url-only');
+            fetchRSS('https://snssdk.com/news/rss/category/all', 'kuji-box'); // 一番くじ等を含む代替ニュースフィード
             renderTasks();
         };
     </script>
