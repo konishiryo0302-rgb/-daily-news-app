@@ -3,154 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TEL Style Intelligence</title>
+    <title>Sunsun Intel</title>
     <style>
-        :root { --tel-blue: #00a1e9; --tel-green: #8cc63f; --line-bg: #7494c0; }
+        :root { --tel-blue: #00a1e9; --tel-green: #8cc63f; }
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 10px; background-color: #f0f4f8; }
         
-        body { 
-            font-family: -apple-system, sans-serif; margin: 0; padding: 15px;
-            background-color: #f8f9fa; min-height: 100vh;
-        }
-
-        /* 背景ポケモン（第5世代：1-649） */
-        #pokemon-bg {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 90%; height: 90%; object-fit: contain; opacity: 0.5; z-index: -2; pointer-events: none;
-        }
-
-        /* ★右下の常駐スンスン（背景URLではなくimgタグで確実に表示） */
-        #fixed-sunsun {
-            position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px;
-            z-index: 1000; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-        }
-
-        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; }
+        /* 最上部：天気情報 */
+        .weather-bar { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-bottom: 3px solid var(--tel-blue); font-size: 0.8rem; font-weight: bold; }
         
-        h2 { 
-            font-size: 0.9rem; color: var(--tel-blue); border-left: 6px solid var(--tel-green);
-            padding: 5px 12px; margin: 25px 0 10px 0; background: rgba(255,255,255,0.9);
-        }
+        /* ポケモン背景 */
+        #pokemon-bg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; opacity: 0.4; z-index: -1; pointer-events: none; }
+
+        /* ★右下の常駐スンスン（埋め込み） */
+        #fixed-sunsun { position: fixed; bottom: 20px; right: 20px; width: 70px; height: 70px; z-index: 100; }
+
+        .section { background: rgba(255,255,255,0.9); border-radius: 12px; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { font-size: 0.75rem; color: var(--tel-blue); border-left: 4px solid var(--tel-green); padding-left: 8px; margin: 15px 0 8px 0; }
         
-        .section { background: rgba(255,255,255,0.95); border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
-        /* LINE風チャット */
-        .chat-area { background: var(--line-bg); border-radius: 12px; padding: 15px; height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { display: flex; align-items: flex-start; gap: 8px; width: 100%; }
-        .chat-icon { width: 35px; height: 35px; border-radius: 50%; border: 1px solid white; object-fit: cover; background: white; }
-        .bubble { padding: 8px 12px; border-radius: 15px; font-size: 0.85rem; max-width: 70%; line-height: 1.4; position: relative; }
-        .bubble-sunsun { background: white; color: black; }
-        .bubble-user { background: #85e249; color: black; margin-left: auto; }
-
-        .input-row { display: flex; gap: 8px; margin-top: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; font-size: 16px; }
-        .send-btn { background: var(--tel-blue); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-weight: bold; }
-
-        .save-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--tel-blue), var(--tel-green)); color: white; border: none; border-radius: 10px; font-weight: bold; }
+        /* チャットエリア */
+        .chat-box { background: #7494c0; border-radius: 10px; padding: 10px; height: 180px; overflow-y: auto; }
+        .msg { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 10px; }
+        .sunsun-icon { width: 30px; height: 30px; border-radius: 50%; background: white; }
+        .bubble { background: white; padding: 6px 10px; border-radius: 12px; font-size: 0.8rem; max-width: 75%; }
+        
+        .save-btn { width: 100%; padding: 12px; background: var(--tel-blue); color: white; border: none; border-radius: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <img id="pokemon-bg" src="">
-    
-    <img id="fixed-sunsun" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAEgASAMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAAFBgADBAECB//EADYQAAIBAwIDBQYEBwEAAAAAAAECAwAEEQUhEjFBBhNRYXEiMoGRobFCwdHhFBUjUmKC8PEz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDBAAF/8QAIBEAAgICAwADAAAAAAAAAAAAAAECEQMhEjFBBBNRcf/aAAwithH6P6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpX//Z">
 
-    <div class="container">
-        <h2>STRATEGIC NEWS</h2>
-        <div class="section" id="news-box">Connecting TEL Network...</div>
+<div class="weather-bar" id="weather">天気情報を取得中...</div>
 
-        <h2>SUNSUN TALK</h2>
-        <div class="section">
-            <div class="chat-area" id="chat-display">
-                <div class="msg">
-                    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAEgASAMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAAFBgADBAECB//EADYQAAIBAwIDBQYEBwEAAAAAAAECAwAEEQUhEjFBBhNRYXEiMoGRobFCwdHhFBUjUmKC8PEz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDBAAF/8QAIBEAAgICAwADAAAAAAAAAAAAAAECEQMhEjFBBBNRcf/aAAwithH6P6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpX//Z" class="chat-icon">
-                    <div class="bubble bubble-sunsun">スンスンだよ！なにかはなそう。</div>
-                </div>
-            </div>
-            <div class="input-row">
-                <input type="text" id="chat-input" placeholder="メッセージを入力">
-                <button class="send-btn" onclick="sunsunChat()">送信</button>
-            </div>
-        </div>
+<img id="pokemon-bg" src="">
 
-        <h2>LOGIC ARCHIVE</h2>
-        <div class="section">
-            <input type="text" id="tContent" style="width:100%; padding:12px; margin-bottom:8px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="THOUGHT">
-            <input type="text" id="tPerson" style="width:100%; padding:12px; margin-bottom:8px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="PERSON">
-            <button class="save-btn" onclick="saveTask()">SAVE LOGIC</button>
-            <div id="taskList" style="margin-top:10px;"></div>
+<img id="fixed-sunsun" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAADJ0lEQVR4nO2az2sTQRSAX8uS9iBii6IUpFpPEv9A66mIeCh460m89CKI7V0vYv9AsYfS7E0v8STWQ9G7Vv9A68mD9SDe6kG89SDe6vN2YvYlm002u9mS7mS+L8yS7L75vXlvZt6sjIggICAgICAgICAgICAg4D/Anm0YjUYXpJS3fN9vSClvYoyH9VpE5D3GeG93d3f99fX1XfE79Xp90XGcZcdxlpNo9m6mS4iIxvV6/X6SDR9LgK7rzp8fP139vE8p1R8D6vX67NWrV89u3LhxV7VveXn5KGN8Sko5o9oH0U960zRt27Y9N6H6B9FvepP+mKbpO0qp/hjQ6/Xm79y5M7+6uropfideXl7e8X3/TZZlH6Nofq49YKXneYvNZvO6E79vYv0n1v0k89M6oK9pmu6r9gH698Xn56fZA9Y9z5sX/SfyU48B7Xb7ieM4j6SUW6p9m9S76Y9pmu7UarVf0f6C7gFKKZVSno/H461Op/O0Wq2eS8O7Inr7065vD1BK9XfFp++D3Xq9fhc9wD8vS5pLpZSNVqt1N03T91LKm6p9R5E609ueZ69nZfRzKWWjUqlskmS7vj1AKdVnId/3247jPCPxdv1+wK+8T98H9A3p6z9fO4L7LpVK88fH7z6Ypgf8yvv0fUD7O9J3P4j/eZ68X7vdfvKz30dE0vY8ez0Xyft9/f90fN/vLpVK88fH9zzvOfE78X963/N8e6DT6TyRUv6I6O1vS7pLpZSN7Xp2UUrZoC6R98n79XfE79899fG7pE8fTNMDPuevB8R3fT8HOHpD6Z6I3v709uev9v7P9f9Xh6S+p6S+8Yvof87/PqDZbF6n7v/E/6S+8avv/1p/p8vVn2vA7Ozs7Pn3n0v6+p/XnzPgrUjf/Uj6v+Z/HxA/P6m099D0f83/PgAAAP//AwC6hR3P0v6tOQAAAABJRU5ErkJggg==">
+
+<div class="section">
+    <h2>SEMICONDUCTOR NEWS</h2>
+    <div id="news-box" style="font-size:0.8rem;">Loading...</div>
+</div>
+
+<div class="section">
+    <h2>SUNSUN CHAT</h2>
+    <div class="chat-box" id="chat-display">
+        <div class="msg">
+            <div class="bubble">スンスンだよ！</div>
         </div>
     </div>
+    <div style="display:flex; gap:5px; margin-top:8px;">
+        <input type="text" id="chat-input" style="flex:1; border-radius:15px; border:1px solid #ccc; padding:8px;" placeholder="メッセージ...">
+        <button onclick="sunsunChat()" style="background:var(--tel-blue); color:white; border:none; border-radius:50%; width:35px;">></button>
+    </div>
+</div>
 
-    <script>
-        // スンスンの画像データ(Base64)
-        const SUNSUN_B64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAEgASAMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAAFBgADBAECB//EADYQAAIBAwIDBQYEBwEAAAAAAAECAwAEEQUhEjFBBhNRYXEiMoGRobFCwdHhFBUjUmKC8PEz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDBAAF/8QAIBEAAgICAwADAAAAAAAAAAAAAAECEQMhEjFBBBNRcf/aAAwithH6P6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpX//Z";
+<div class="section">
+    <h2>LOGIC ARCHIVE</h2>
+    <input type="text" id="tContent" style="width:100%; padding:8px; margin-bottom:5px; border-radius:4px; border:1px solid #ddd;" placeholder="THOUGHT">
+    <button class="save-btn" onclick="saveTask()">SAVE</button>
+</div>
 
-        function setRandomPokemon() {
-            const pokeId = Math.floor(Math.random() * 649) + 1;
-            const img = document.getElementById('pokemon-bg');
-            img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
-        }
+<script>
+    // 天気情報取得 (Yahoo RSS via rss2json)
+    async function fetchWeather() {
+        const url = 'https://news.google.com/rss/search?q=%E5%A4%A9%E6%B0%97+%E6%B0%97%E6%B8%A9&hl=ja&gl=JP&ceid=JP:ja';
+        try {
+            const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+            const data = await res.json();
+            document.getElementById('weather').innerText = "Update: " + data.items[0].title.split(' - ')[0];
+        } catch (e) { document.getElementById('weather').innerText = "Weather update failed."; }
+    }
 
-        async function fetchNews() {
-            const rssUrl = 'https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja';
-            try {
-                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
-                const data = await res.json();
-                document.getElementById('news-box').innerHTML = data.items.slice(0, 5).map(item => `
-                    <div style="margin-bottom:10px;"><a href="${item.link}" target="_blank" style="text-decoration:none; color:#111; font-size:0.85rem; font-weight:bold;">${item.title}</a></div>
-                `).join('');
-            } catch (e) { document.getElementById('news-box').innerHTML = "再読込してください。"; }
-        }
+    async function fetchNews() {
+        const url = 'https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja';
+        try {
+            const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+            const data = await res.json();
+            document.getElementById('news-box').innerHTML = data.items.slice(0, 3).map(i => `<p>・${i.title}</p>`).join('');
+        } catch (e) { }
+    }
 
-        function sunsunChat() {
-            const input = document.getElementById('chat-input');
-            const display = document.getElementById('chat-display');
-            if(!input.value) return;
+    function setPokemon() {
+        const id = Math.floor(Math.random() * 649) + 1;
+        document.getElementById('pokemon-bg').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+    }
 
-            display.innerHTML += `<div class="bubble bubble-user">${input.value}</div>`;
-            
-            const replies = ["スンスン！", "パペットだよぉ", "おなかすいたね", "そうなんだぁ", "スンスンスンスン！", "おひるねの時間かな？"];
-            const reply = replies[Math.floor(Math.random() * replies.length)];
-
-            setTimeout(() => {
-                display.innerHTML += `
-                    <div class="msg">
-                        <img src="${SUNSUN_B64}" class="chat-icon">
-                        <div class="bubble bubble-sunsun">${reply}</div>
-                    </div>`;
-                display.scrollTop = display.scrollHeight;
-            }, 500);
-            input.value = '';
+    function sunsunChat() {
+        const input = document.getElementById('chat-input');
+        const display = document.getElementById('chat-display');
+        if(!input.value) return;
+        display.innerHTML += `<div class="msg" style="justify-content: flex-end;"><div class="bubble" style="background:#85e249;">${input.value}</div></div>`;
+        setTimeout(() => {
+            display.innerHTML += `<div class="msg"><div class="bubble">スンスン！(ﾟ▽ﾟ)</div></div>`;
             display.scrollTop = display.scrollHeight;
-        }
+        }, 500);
+        input.value = '';
+    }
 
-        function saveTask() {
-            const content = document.getElementById('tContent').value;
-            const person = document.getElementById('tPerson').value;
-            if(!content) return;
-            const task = { content, person, time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) };
-            let tasks = JSON.parse(localStorage.getItem('tel_tasks_final') || '[]');
-            tasks.unshift(task);
-            localStorage.setItem('tel_tasks_final', JSON.stringify(tasks));
-            renderTasks();
-            document.getElementById('tContent').value = '';
-        }
-
-        function renderTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tel_tasks_final') || '[]');
-            document.getElementById('taskList').innerHTML = tasks.slice(0, 5).map(t => `
-                <div style="background:#fff; padding:8px; border-radius:8px; margin-bottom:5px; font-size:0.75rem; border-left:4px solid var(--tel-green);">
-                    <strong>${t.time}</strong> ${t.content} (${t.person})
-                </div>
-            `).join('');
-        }
-
-        window.onload = () => {
-            setRandomPokemon();
-            fetchNews();
-            renderTasks();
-            // 右下スンスンの画像を確実にセット
-            document.getElementById('fixed-sunsun').src = SUNSUN_B64;
-        };
-    </script>
+    window.onload = () => { fetchWeather(); fetchNews(); setPokemon(); };
+</script>
 </body>
 </html>
