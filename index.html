@@ -4,95 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>TEL Intelligence & Sunsun</title>
+    <title>Sunsun x TEL Dashboard</title>
     <style>
         :root { 
-            --tel-blue: #00a1e9; 
-            --tel-green: #8cc63f; 
-            --tel-white: #ffffff;
-            --tel-gray: #f2f4f6;
+            --tel-blue: #00a1e9; --tel-green: #8cc63f; --line-bg: #7494c0; 
+            --line-bubble: #ffffff; --line-user-bubble: #85e249;
         }
         
         body { 
             font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; 
-            margin: 0; padding: 15px; background-color: var(--tel-gray);
-            color: #333; min-height: 100vh;
+            margin: 0; padding: 15px; background-color: #f8f9fa; color: #333; min-height: 100vh;
         }
 
-        /* ポケモン背景：第5世代(1-649) 主張強め */
+        /* ポケモン背景：主張強め */
         #pokemon-bg {
-            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; height: 85%; object-fit: contain; opacity: 0.4; z-index: -1;
-            pointer-events: none;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; height: 90%; object-fit: contain; opacity: 0.5; z-index: -2; pointer-events: none;
         }
 
-        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
+        /* 常駐スンスン：確実に右下に配置 */
+        #sunsun-fixed {
+            position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px;
+            z-index: 1000; pointer-events: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            animation: bounce 3s infinite ease-in-out;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; padding-bottom: 60px; }
         
         h2 { 
-            font-size: 0.85rem; letter-spacing: 1px; color: var(--tel-blue);
+            font-size: 0.9rem; font-weight: bold; color: var(--tel-blue);
             border-left: 6px solid var(--tel-green); padding: 4px 12px;
-            margin: 25px 0 10px 0; background: rgba(255,255,255,0.7);
+            margin: 25px 0 10px 0; background: rgba(255,255,255,0.8); border-radius: 0 8px 8px 0;
         }
         
         .section { 
-            background: rgba(255, 255, 255, 0.95); border-radius: 15px; 
-            padding: 15px; margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0, 161, 233, 0.08);
-            border: 1px solid rgba(0, 161, 233, 0.1);
+            background: rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 15px; margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 161, 233, 0.1); border: 1px solid rgba(0, 161, 233, 0.1);
         }
 
-        /* ニュース・リスト */
+        /* ニュース */
         .item { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-        .item a { text-decoration: none; color: #222; font-size: 0.9rem; font-weight: 600; line-height: 1.4; display: block; }
+        .item a { text-decoration: none; color: #1a1a1a; font-size: 0.9rem; font-weight: 600; line-height: 1.4; display: block; }
+
+        /* LINE風チャット */
+        .chat-container { background: var(--line-bg); border-radius: 12px; padding: 15px; height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .chat-bubble { position: relative; max-width: 75%; padding: 8px 12px; border-radius: 14px; font-size: 0.85rem; line-height: 1.4; word-wrap: break-word; }
+        
+        /* スンスンの発言 */
+        .msg-sunsun { display: flex; align-items: flex-start; gap: 8px; align-self: flex-start; }
+        .sunsun-icon { width: 35px; height: 35px; border-radius: 50%; background: #fff; flex-shrink: 0; object-fit: cover; }
+        .bubble-sunsun { background: var(--line-bubble); color: #000; border-radius: 14px; }
+        .bubble-sunsun::before { content: ""; position: absolute; left: -8px; top: 10px; border-style: solid; border-width: 6px 8px 6px 0; border-color: transparent var(--line-bubble) transparent transparent; }
+
+        /* ユーザーの発言 */
+        .msg-user { align-self: flex-end; background: var(--line-user-bubble); color: #000; border-radius: 14px; }
+        .msg-user::after { content: ""; position: absolute; right: -8px; top: 10px; border-style: solid; border-width: 6px 0 6px 8px; border-color: transparent transparent transparent var(--line-user-bubble); }
 
         /* 入力UI */
-        input { 
-            width: 100%; padding: 12px; border: 2px solid #eef0f2; border-radius: 10px; 
-            font-size: 16px; box-sizing: border-box; margin-bottom: 10px; outline: none;
-        }
-        input:focus { border-color: var(--tel-blue); }
-        
-        button { 
-            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--tel-blue), var(--tel-green));
-            color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem;
-        }
+        .input-row { display: flex; gap: 8px; margin-top: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; font-size: 16px; outline: none; }
+        .send-btn { background: var(--tel-blue); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-weight: bold; }
 
-        .task-card { 
-            background: #fff; padding: 10px; border-radius: 8px; margin-top: 10px;
-            border-right: 4px solid var(--tel-green); font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        /* スンスンチャットエリア */
-        .chat-box { height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; }
-        .chat-msg { margin-bottom: 8px; font-size: 0.85rem; padding: 6px 10px; border-radius: 12px; max-width: 80%; }
-        .msg-user { background: var(--tel-blue); color: white; margin-left: auto; text-align: right; }
-        .msg-sunsun { background: #e8e8e8; color: #333; display: flex; align-items: center; gap: 5px; }
-        .sunsun-icon { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+        .archive-input { width:100%; padding:12px; margin-bottom:8px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }
+        .save-btn { width:100%; padding:14px; background: var(--tel-green); color:white; border:none; border-radius:8px; font-weight:bold; }
+        .task-card { background:#fff; padding:10px; border-radius:8px; margin-top:10px; border-right:4px solid var(--tel-green); font-size:0.8rem; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
     <img id="pokemon-bg" src="" alt="">
+    <img id="sunsun-fixed" src="https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=small" alt="sunsun">
 
     <div class="container">
         <h2>STRATEGIC NEWS</h2>
-        <div class="section" id="news-box">Connecting TEL Network...</div>
+        <div class="section" id="news-box">Fetching TEL data...</div>
 
-        <h2>SUNSUN CHAT</h2>
+        <h2>SUNSUN TALK (LINE style)</h2>
         <div class="section">
-            <div class="chat-box" id="chat-display">
-                <div class="chat-msg msg-sunsun">スンスンだよ。なにかはなして。</div>
+            <div class="chat-container" id="chat-display">
+                <div class="msg-sunsun">
+                    <img src="https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=small" class="sunsun-icon">
+                    <div class="chat-bubble bubble-sunsun">スンスンだよ！なにかはなそうよ。</div>
+                </div>
             </div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="chat-input" placeholder="スンスンにメッセージ..." style="margin-bottom:0;">
-                <button onclick="sunsunChat()" style="width:70px; padding:0;">送信</button>
+            <div class="input-row">
+                <input type="text" id="chat-input" placeholder="メッセージを入力">
+                <button class="send-btn" onclick="sunsunChat()">送信</button>
             </div>
         </div>
 
         <h2>LOGIC ARCHIVE</h2>
         <div class="section">
-            <input type="text" id="tContent" placeholder="THOUGHT">
-            <input type="text" id="tPerson" placeholder="PERSON">
-            <button onclick="saveTask()">SAVE LOGIC</button>
+            <input type="text" id="tContent" class="archive-input" placeholder="THOUGHT">
+            <input type="text" id="tPerson" class="archive-input" placeholder="PERSON">
+            <button class="save-btn" onclick="saveTask()">SAVE TO ARCHIVE</button>
             <div id="taskList"></div>
         </div>
     </div>
@@ -101,7 +106,7 @@
         const SUNSUN_IMG = "https://pbs.twimg.com/media/FvY0m7aaEAA5z0L?format=jpg&name=small";
 
         function setRandomPokemon() {
-            const pokeId = Math.floor(Math.random() * 649) + 1; // 第5世代まで
+            const pokeId = Math.floor(Math.random() * 649) + 1;
             document.getElementById('pokemon-bg').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
         }
 
@@ -116,24 +121,22 @@
             } catch (e) { document.getElementById('news-box').innerHTML = "Reload required."; }
         }
 
-        // スンスンチャットのロジック
         function sunsunChat() {
             const input = document.getElementById('chat-input');
             const display = document.getElementById('chat-display');
             if(!input.value) return;
 
-            // ユーザーメッセージ
-            display.innerHTML += `<div class="chat-msg msg-user">${input.value}</div>`;
+            // ユーザー発言
+            display.innerHTML += `<div class="chat-bubble msg-user">${input.value}</div>`;
             
-            // スンスンの適当な返信リスト
-            const replies = ["スンスン！", "パペットだよ", "おなかすいたね", "そうなんだぁ", "よくわかんないけどすごいね", "おひるねする？", "ふーん...", "スンスンスンスン！"];
+            const replies = ["スンスン！", "パペットだよぉ", "おなかすいたね", "それっておいしいの？", "へぇ〜、そうなんだ！", "スンスンもいっしょにやる！", "おひるねのじかんだよ", "スンスンスンスン！"];
             const randomReply = replies[Math.floor(Math.random() * replies.length)];
 
             setTimeout(() => {
                 display.innerHTML += `
-                    <div class="chat-msg msg-sunsun">
+                    <div class="msg-sunsun">
                         <img src="${SUNSUN_IMG}" class="sunsun-icon">
-                        ${randomReply}
+                        <div class="chat-bubble bubble-sunsun">${randomReply}</div>
                     </div>`;
                 display.scrollTop = display.scrollHeight;
             }, 600);
@@ -147,15 +150,16 @@
             const person = document.getElementById('tPerson').value;
             if(!content) return;
             const task = { content, person, time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) };
-            let tasks = JSON.parse(localStorage.getItem('tel_tasks_v7') || '[]');
+            let tasks = JSON.parse(localStorage.getItem('tel_tasks_v8') || '[]');
             tasks.unshift(task);
-            localStorage.setItem('tel_tasks_v7', JSON.stringify(tasks));
+            localStorage.setItem('tel_tasks_v8', JSON.stringify(tasks));
             renderTasks();
             document.getElementById('tContent').value = '';
+            document.getElementById('tPerson').value = '';
         }
 
         function renderTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tel_tasks_v7') || '[]');
+            const tasks = JSON.parse(localStorage.getItem('tel_tasks_v8') || '[]');
             document.getElementById('taskList').innerHTML = tasks.slice(0, 5).map(t => `
                 <div class="task-card"><strong>${t.time}</strong> ${t.content} (${t.person})</div>
             `).join('');
