@@ -3,115 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sunsun Intelligence Console</title>
+    <title>TEL Style Intelligence</title>
     <style>
-        :root { --tel-blue: #00a1e9; --tel-green: #8cc63f; --bg: #f5f7fa; }
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 10px; background: var(--bg); min-height: 100vh; }
+        :root { --tel-blue: #00a1e9; --tel-green: #8cc63f; --line-bg: #7494c0; }
         
-        /* 天気バー */
-        .weather-panel { background: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.85rem; border-top: 4px solid var(--tel-blue); }
+        body { 
+            font-family: -apple-system, sans-serif; margin: 0; padding: 15px;
+            background-color: #f8f9fa; min-height: 100vh;
+        }
 
-        /* スンスンSVG（右下固定） */
-        #sunsun-fixed { position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; z-index: 9999; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+        /* 背景ポケモン（第5世代：1-649） */
+        #pokemon-bg {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; height: 90%; object-fit: contain; opacity: 0.5; z-index: -2; pointer-events: none;
+        }
 
-        .section { background: rgba(255,255,255,0.95); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { font-size: 0.8rem; color: var(--tel-blue); border-left: 5px solid var(--tel-green); padding-left: 10px; margin-top: 0; }
+        /* ★右下の常駐スンスン（背景URLではなくimgタグで確実に表示） */
+        #fixed-sunsun {
+            position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px;
+            z-index: 1000; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+        }
 
-        /* ロジックアーカイブ */
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; -webkit-appearance: none; }
-        .save-btn { background: linear-gradient(135deg, var(--tel-blue), var(--tel-green)); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 5px; }
+        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; }
         
-        #archive-list { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .log-card { background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 8px; font-size: 0.8rem; position: relative; }
-        .log-time { color: var(--tel-blue); font-weight: bold; margin-right: 8px; }
-        .log-person { color: #666; font-style: italic; display: block; margin-top: 4px; border-top: 1px dashed #eee; padding-top: 4px; }
+        h2 { 
+            font-size: 0.9rem; color: var(--tel-blue); border-left: 6px solid var(--tel-green);
+            padding: 5px 12px; margin: 25px 0 10px 0; background: rgba(255,255,255,0.9);
+        }
+        
+        .section { background: rgba(255,255,255,0.95); border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-        /* 背景ポケモン */
-        #pk-bg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; opacity: 0.3; z-index: -1; pointer-events: none; }
+        /* LINE風チャット */
+        .chat-area { background: var(--line-bg); border-radius: 12px; padding: 15px; height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { display: flex; align-items: flex-start; gap: 8px; width: 100%; }
+        .chat-icon { width: 35px; height: 35px; border-radius: 50%; border: 1px solid white; object-fit: cover; background: white; }
+        .bubble { padding: 8px 12px; border-radius: 15px; font-size: 0.85rem; max-width: 70%; line-height: 1.4; position: relative; }
+        .bubble-sunsun { background: white; color: black; }
+        .bubble-user { background: #85e249; color: black; margin-left: auto; }
+
+        .input-row { display: flex; gap: 8px; margin-top: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; font-size: 16px; }
+        .send-btn { background: var(--tel-blue); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-weight: bold; }
+
+        .save-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--tel-blue), var(--tel-green)); color: white; border: none; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
+    <img id="pokemon-bg" src="">
+    
+    <img id="fixed-sunsun" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAEgASAMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAAFBgADBAECB//EADYQAAIBAwIDBQYEBwEAAAAAAAECAwAEEQUhEjFBBhNRYXEiMoGRobFCwdHhFBUjUmKC8PEz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDBAAF/8QAIBEAAgICAwADAAAAAAAAAAAAAAECEQMhEjFBBBNRcf/aAAwithH6P6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpX//Z">
 
-<div class="weather-panel" id="weather-box">天気情報を同期中...</div>
+    <div class="container">
+        <h2>STRATEGIC NEWS</h2>
+        <div class="section" id="news-box">Connecting TEL Network...</div>
 
-<img id="pk-bg" src="">
-
-<div id="sunsun-fixed">
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" fill="white" stroke="#333" stroke-width="2"/>
-        <circle cx="35" cy="40" r="5" fill="#333"/>
-        <circle cx="65" cy="40" r="5" fill="#333"/>
-        <path d="M 30 60 Q 50 80 70 60" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/>
-        <path d="M 45 45 L 55 45" stroke="pink" stroke-width="4" opacity="0.6"/>
-    </svg>
-</div>
-
-<div class="section">
-    <h2>LOGIC ARCHIVE</h2>
-    <div class="input-group">
-        <input type="text" id="log-content" placeholder="思考の内容 (THOUGHT)">
-        <input type="text" id="log-person" placeholder="人物 (PERSON)">
-        <button class="save-btn" onclick="saveLogic()">SAVE TO SEMICONDUCTOR</button>
-    </div>
-    <div id="archive-list"></div>
-</div>
-
-<script>
-    // 1. ロジック保存システム（LocalStorageで永続化）
-    function saveLogic() {
-        const content = document.getElementById('log-content').value;
-        const person = document.getElementById('log-person').value;
-        if (!content) return;
-
-        const now = new Date();
-        const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
-
-        const newLog = { content, person: person || "Unknown", time: timeStr };
-        
-        // 既存ログ取得
-        let logs = JSON.parse(localStorage.getItem('sunsun_logs') || '[]');
-        logs.unshift(newLog); // 先頭に追加
-        localStorage.setItem('sunsun_logs', JSON.stringify(logs));
-
-        renderLogs();
-        document.getElementById('log-content').value = '';
-        document.getElementById('log-person').value = '';
-    }
-
-    function renderLogs() {
-        const logs = JSON.parse(localStorage.getItem('sunsun_logs') || '[]');
-        const list = document.getElementById('archive-list');
-        list.innerHTML = logs.slice(0, 10).map(log => `
-            <div class="log-card">
-                <span class="log-time">${log.time}</span>
-                <strong>${log.content}</strong>
-                <span class="log-person">Recorded by: ${log.person}</span>
+        <h2>SUNSUN TALK</h2>
+        <div class="section">
+            <div class="chat-area" id="chat-display">
+                <div class="msg">
+                    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAEgASAMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAAFBgADBAECB//EADYQAAIBAwIDBQYEBwEAAAAAAAECAwAEEQUhEjFBBhNRYXEiMoGRobFCwdHhFBUjUmKC8PEz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDBAAF/8QAIBEAAgICAwADAAAAAAAAAAAAAAECEQMhEjFBBBNRcf/aAAwithH6P6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpX//Z" class="chat-icon">
+                    <div class="bubble bubble-sunsun">スンスンだよ！なにかはなそう。</div>
+                </div>
             </div>
-        `).join('');
-    }
+            <div class="input-row">
+                <input type="text" id="chat-input" placeholder="メッセージを入力">
+                <button class="send-btn" onclick="sunsunChat()">送信</button>
+            </div>
+        </div>
 
-    // 2. 天気取得
-    async function fetchWeather() {
-        const rss = 'https://news.google.com/rss/search?q=%E6%9D%B1%E4%BA%AC+%E5%A4%A9%E6%B0%97+%E6%B0%97%E6%B8%A9&hl=ja&gl=JP&ceid=JP:ja';
-        try {
-            const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`);
-            const data = await res.json();
-            document.getElementById('weather-box').innerHTML = `<b>TODAY'S INTEL:</b> ${data.items[0].title.split(' - ')[0]}`;
-        } catch (e) { document.getElementById('weather-box').innerText = "Weather offline."; }
-    }
+        <h2>LOGIC ARCHIVE</h2>
+        <div class="section">
+            <input type="text" id="tContent" style="width:100%; padding:12px; margin-bottom:8px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="THOUGHT">
+            <input type="text" id="tPerson" style="width:100%; padding:12px; margin-bottom:8px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="PERSON">
+            <button class="save-btn" onclick="saveTask()">SAVE LOGIC</button>
+            <div id="taskList" style="margin-top:10px;"></div>
+        </div>
+    </div>
 
-    // 3. ポケモン背景
-    function setPk() {
-        const id = Math.floor(Math.random() * 649) + 1;
-        document.getElementById('pk-bg').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-    }
+    <script>
+        // スンスンの画像データ(Base64)
+        const SUNSUN_B64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAEgASAMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAAFBgADBAECB//EADYQAAIBAwIDBQYEBwEAAAAAAAECAwAEEQUhEjFBBhNRYXEiMoGRobFCwdHhFBUjUmKC8PEz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDBAAF/8QAIBEAAgICAwADAAAAAAAAAAAAAAECEQMhEjFBBBNRcf/aAAwithH6P6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpXpH6v6pP9XvXpXpX//Z";
 
-    window.onload = () => {
-        renderLogs();
-        fetchWeather();
-        setPk();
-    };
-</script>
+        function setRandomPokemon() {
+            const pokeId = Math.floor(Math.random() * 649) + 1;
+            const img = document.getElementById('pokemon-bg');
+            img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+        }
+
+        async function fetchNews() {
+            const rssUrl = 'https://news.google.com/rss/search?q=%E5%8D%8A%E5%B0%8E%E4%BD%93+%E8%87%AA%E6%B2%BB%E4%BD%93&hl=ja&gl=JP&ceid=JP:ja';
+            try {
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
+                const data = await res.json();
+                document.getElementById('news-box').innerHTML = data.items.slice(0, 5).map(item => `
+                    <div style="margin-bottom:10px;"><a href="${item.link}" target="_blank" style="text-decoration:none; color:#111; font-size:0.85rem; font-weight:bold;">${item.title}</a></div>
+                `).join('');
+            } catch (e) { document.getElementById('news-box').innerHTML = "再読込してください。"; }
+        }
+
+        function sunsunChat() {
+            const input = document.getElementById('chat-input');
+            const display = document.getElementById('chat-display');
+            if(!input.value) return;
+
+            display.innerHTML += `<div class="bubble bubble-user">${input.value}</div>`;
+            
+            const replies = ["スンスン！", "パペットだよぉ", "おなかすいたね", "そうなんだぁ", "スンスンスンスン！", "おひるねの時間かな？"];
+            const reply = replies[Math.floor(Math.random() * replies.length)];
+
+            setTimeout(() => {
+                display.innerHTML += `
+                    <div class="msg">
+                        <img src="${SUNSUN_B64}" class="chat-icon">
+                        <div class="bubble bubble-sunsun">${reply}</div>
+                    </div>`;
+                display.scrollTop = display.scrollHeight;
+            }, 500);
+            input.value = '';
+            display.scrollTop = display.scrollHeight;
+        }
+
+        function saveTask() {
+            const content = document.getElementById('tContent').value;
+            const person = document.getElementById('tPerson').value;
+            if(!content) return;
+            const task = { content, person, time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) };
+            let tasks = JSON.parse(localStorage.getItem('tel_tasks_final') || '[]');
+            tasks.unshift(task);
+            localStorage.setItem('tel_tasks_final', JSON.stringify(tasks));
+            renderTasks();
+            document.getElementById('tContent').value = '';
+        }
+
+        function renderTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tel_tasks_final') || '[]');
+            document.getElementById('taskList').innerHTML = tasks.slice(0, 5).map(t => `
+                <div style="background:#fff; padding:8px; border-radius:8px; margin-bottom:5px; font-size:0.75rem; border-left:4px solid var(--tel-green);">
+                    <strong>${t.time}</strong> ${t.content} (${t.person})
+                </div>
+            `).join('');
+        }
+
+        window.onload = () => {
+            setRandomPokemon();
+            fetchNews();
+            renderTasks();
+            // 右下スンスンの画像を確実にセット
+            document.getElementById('fixed-sunsun').src = SUNSUN_B64;
+        };
+    </script>
 </body>
 </html>
